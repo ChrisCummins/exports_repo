@@ -182,4 +182,4 @@ The heavy lifting is done by the excellent [git-filter-repo](https://github.com/
 
 ## License
 
-Made with ❤️ by Chris Cummins. Released under MIT License.
+Made with ❤️ by [Chris Cummins](https://chriscummins.cc). Released under [MIT License](LICENSE).
