@@ -23,6 +23,7 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 http_archive(
     name = "cec_exports_repo",
     urls = ["https://github.com/ChrisCummins/exports_repo/archive/2020.05.06.tar.gz"],
+    sha256 = "338001b0e2e3cea978b72a456ac201b86042aecbbbdb779694ac4b131e949fc2",
     strip_prefix = "exports_repo-2005.05.06",
 )
 
