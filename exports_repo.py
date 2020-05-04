@@ -142,9 +142,6 @@ def ResolvePaths(
   Returns:
     A list of paths to export. Each path is known to exist.
   """
-  print("Enumerating paths to export... ", end="", file=sys.stderr)
-  sys.stderr.flush()
-
   paths = copy.copy(paths)
 
   # A list of files which should be exported if they are found. Basically these
@@ -163,6 +160,8 @@ def ResolvePaths(
 
   # Add the sources and build files for the additional targets.
   for target in targets:
+    print(f"\r\033[KQuerying target {target} ... ", end="", file=sys.stderr)
+    sys.stderr.flush()
     paths += BazelQuery(f'kind("source file", deps({target}))')
     paths += BazelQuery(f"buildfiles(deps({target}))")
 
@@ -184,7 +183,7 @@ def ResolvePaths(
   # Filter paths to remove.
   paths = [path for path in paths if path not in path_remove]
 
-  print(len(paths), file=sys.stderr)
+  print("Enumerated paths to export:", len(paths), file=sys.stderr)
   return sorted(paths)
 
 
