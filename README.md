@@ -1,5 +1,7 @@
 # `cec_exports_repo`: Bazel subproject export
 
+[![Build Status](https://travis-ci.org/ChrisCummins/exports_repo.svg?branch=master)](https://travis-ci.org/ChrisCummins/exports_repo)
+
 ## Overview
 
 This project provides a bazel rule for exporting the git history for a subset of targets in a workspace as a separate repository.

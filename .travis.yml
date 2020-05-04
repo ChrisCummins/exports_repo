@@ -1,0 +1,46 @@
+dist: trusty
+sudo: true
+
+os:
+  - linux
+  - osx
+
+env:
+  global:
+  - secure: zKtgRHzqw13qc6CGNF01U8N5efy8WF7OVlix859o6x/TsgD+ZcVuLtXuTbEtVWnlEwwmWy7VJBhwLZ1JTtPFcMbSzqaZYRLZsKc2HyuXGemBU5jqUuNkgOz3G+L0LFkPttQVk7dQmIlffgnWwJkV8Ptkp9d8ONDJAmZYfjsWvEIrCgJDArqF78gQHaHkVUmMpSgsABPZ7N7F9oqealaiBBXahS/jl19QARM+NVmW4AJ+qs7dl0uO7nxnPCBPzkms+d3wfbQXiM8UtIMIQNzty0QAb8ja0lSntQ6PH56Yv6NpORHOZFmy/O5A7DPxUaM0PtB9DrWUddQBTAdK+ne/emndr011sTuaS1locTAlJyN7IscACMUzGYZHXXxnZ4sN4S0stIovm+wyZNg/SD7pW3s9oo6gdIOR85+07lgpLKOX/An4ts1yAcbmV9/1+tazO6t4mN1ffdDM0AHzdNLnlAOYAbcHbmlrI+K4PIhH4n57yetH2JhbpQCT39MU519CA/HMlxv4Gkv55/eObf2bc/EUeC7uh/FOSc8AXqWsv/Wl/XbLZ5XoSVKuQY5wRFdHR+szyrlgiDRKwRIx0fy1KOP59P2QW4BYR23H5TLyalguOIR1ko6u7cndtbd6dnetd772ja72SuXjojN4Kq9k5Q1rNCzHK0H6H9gdW/PIrpM=
+  matrix:
+  - BAZEL_VERSION=3.1.0
+
+before_install:
+  - OS=linux
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then OS=darwin; fi
+  # Configure SSH to enable push to ChrisCummins/exports_repo_example.
+  - openssl aes-256-cbc -k "$example_deploy_key_password" -d -md sha256 -a -in travis_key.enc -out travis_key
+  - echo "Host github.com" > ~/.ssh/config
+  - echo "  IdentityFile $(pwd)/travis_key" >> ~/.ssh/config
+  - chmod 400 travis_key
+  - echo "github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==" > ~/.ssh/known_hosts
+  # linux: Upgrade system /usr/bin/python3 from 3.4 to 3.6.
+  - if [[ "$OS" == "linux" ]]; then sudo add-apt-repository -y ppa:deadsnakes/ppa; fi
+  - if [[ "$OS" == "linux" ]]; then sudo apt-get update; fi
+  - if [[ "$OS" == "linux" ]]; then sudo apt-get install -y python3.6; fi
+  - if [[ "$OS" == "linux" ]]; then sudo rm -f /usr/bin/python3 && sudo ln -s /usr/bin/python3.6 /usr/bin/python3; fi
+  # linux: Update git to a more recent version that supports --combined-all-paths.
+  - if [[ "$OS" == "linux" ]]; then sudo apt-get install --only-upgrade -y git && git --version; fi
+  # Install Bazel.
+  - GH_BASE="https://github.com/bazelbuild/bazel/releases/download/$BAZEL_VERSION"
+  - GH_ARTIFACT="bazel-$BAZEL_VERSION-installer-$OS-x86_64.sh"
+  - CI_BASE="http://ci.bazel.io/job/Bazel/JAVA_VERSION=1.8,PLATFORM_NAME=$OS-x86_64/lastSuccessfulBuild/artifact/output/ci"
+  - CI_ARTIFACT="bazel--installer.sh"
+  - URL="$GH_BASE/$GH_ARTIFACT"
+  - if [[ "$BAZEL_VERSION" == "HEAD" ]]; then CI_ARTIFACT="`wget -qO- $CI_BASE | grep
+    -o 'bazel-[-_a-zA-Z0-9\.]*-installer.sh' | uniq`"; fi
+  - if [[ "$BAZEL_VERSION" == "HEAD" ]]; then URL="$CI_BASE/$CI_ARTIFACT"; fi
+  - echo $URL
+  - wget -O install.sh $URL
+  - chmod +x install.sh
+  - "./install.sh --user"
+  - rm -f install.sh
+
+script:
+  - bazel run //example:export --define=workspace=$(pwd)
