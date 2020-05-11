@@ -4,6 +4,11 @@
 def _exports_repo_impl(ctx):
   # The script which will perform the export.
   deployment_script = ctx.actions.declare_file("{}.sh".format(ctx.attr.name))
+  if not "workspace" in ctx.var:
+    fail(
+      "Running an exports_repo() rule requires defining the path of the "
+      + "workspace. Use: --define=workspace=$(pwd)."
+    )
   # Populate the export script.
   ctx.actions.write(
     output=deployment_script,
