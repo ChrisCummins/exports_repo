@@ -15,6 +15,7 @@ import os
 import subprocess
 import sys
 import tempfile
+from glob import glob
 from typing import Any
 from typing import Dict
 from typing import List
@@ -142,7 +143,12 @@ def ResolvePaths(
   Returns:
     A list of paths to export. Each path is known to exist.
   """
-  paths = copy.copy(paths)
+  paths_to_glob = copy.copy(paths)
+  paths = []
+
+  # Expand globs in paths.
+  for path in paths_to_glob:
+    paths += glob(path, recursive=True)
 
   # A list of files which should be exported if they are found. Basically these
   # are common bazel configuration files.
@@ -156,7 +162,8 @@ def ResolvePaths(
   # Add the list of paths which are always exported.
   if os.path.isfile(always_export_path):
     with open(always_export_path) as f:
-      paths += f.read().strip().split("\n")
+      for line in f.read().strip().split("\n"):
+        paths += glob(line, recursive=True)
 
   # Add the sources and build files for the additional targets.
   for target in targets:
